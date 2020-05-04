@@ -1,0 +1,31 @@
+{
+    "name": "zukitek/sso",
+    "description": "Zukitek SSO",
+    "require": {
+        "php": ">=7.1",
+        "guzzlehttp/guzzle": "6.*"
+    },
+    "authors": [
+        {
+            "name": "Alex",
+            "email": "dzung.nguyen@zukitek.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Zukitek\\Sso\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Zukitek\\Sso\\Providers\\LaravelServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": false
+}
