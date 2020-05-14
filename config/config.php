@@ -43,6 +43,10 @@ return [
             'method' => 'delete',
             'path' => '/api/secure/user/:ssoId'
         ],
+        'push_notifications' => [
+            'method' => 'post',
+            'path' => '/api/secure/notifications'
+        ],
     ],
 
     // After SSO auth, server SSO will redirect to this url

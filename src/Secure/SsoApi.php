@@ -6,13 +6,13 @@ use Illuminate\Support\Facades\Auth;
 
 class SsoApi
 {
-    protected $ssoApiUrl;
-    protected $clientId;
-    protected $clientKey;
-    protected $body;
-    protected $author;
-    protected $encryptMethod = 'AES-256-CBC';
-    protected static $instance;
+    private $ssoApiUrl;
+    private $clientId;
+    private $clientKey;
+    private $body;
+    private $author;
+    private $encryptMethod = 'AES-256-CBC';
+    private static $instance;
 
     public function __construct()
     {
@@ -99,6 +99,10 @@ class SsoApi
         $ivlen = openssl_cipher_iv_length($this->encryptMethod);
         $iv = substr($this->clientKey, 0, $ivlen);
         $data['encrypted_at'] = time();
+        $data['_token'] = uniqid(microtime(true), true);
+        uksort($data, function () {
+            return rand(0, 1);
+        });
         $string = json_encode($data);
         $output = openssl_encrypt($string, $this->encryptMethod, $key, 0, $iv);
         $output = base64_encode($output);
