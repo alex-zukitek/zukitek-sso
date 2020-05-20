@@ -68,7 +68,7 @@ trait SsoUserModelTrait
     public function getSsoIdAttribute()
     {
         $ssoData = $this->sso_user;
-        return isset($ssoData['id']) ? str_pad($ssoData['id'], 12, '0', STR_PAD_LEFT) : null;
+        return isset($ssoData['id']) ? $ssoData['id'] : null;
     }
 
     protected function isSsoAttribute(string $key): bool
