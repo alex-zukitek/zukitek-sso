@@ -11,7 +11,11 @@ trait SsoUserModelTrait
         'services', 'status', 'updated_at',
     ];
 
-    protected $ssoHidden = ['id', 'email', 'status', 'created_at', 'updated_at'];
+    protected $syncColumnsLocal = []; // first_name, last_name, full_name, [ "local" => "local_country", "target" => "sso_country"]
+
+    protected $ssoAttributesHidden = []; // 'status', the data will not get in sso_user
+
+    protected $ssoHidden = ['id', 'email', 'created_at', 'updated_at'];
 
     public function __construct(array $attributes = [])
     {
@@ -32,10 +36,15 @@ trait SsoUserModelTrait
 
     protected function addDefaultAttr()
     {
+        /*
         if (!in_array('sso_user', $this->fillable)) {
             array_push($this->fillable, 'sso_user');
         }
 
+        if (!in_array('sso_id', $this->fillable)) {
+            array_push($this->fillable, 'sso_id');
+        }
+        */
         if (!isset($this->casts['sso_user'])) {
             $this->casts['sso_user'] = 'array';
         }
@@ -43,32 +52,51 @@ trait SsoUserModelTrait
 
     public function syncDataLocal(array $ssoUser)
     {
+        $saving = false;
         if (
             empty($this->sso_user) ||
             (!empty($this->sso_user) && is_array($this->sso_user) && $this->sso_user['updated_at'] !== $ssoUser['updated_at'])
         ) {
-            $arr = [];
+            $saving = true;
+            $ssoUserLocal = [];
             foreach ($this->ssoFillable as $key) {
-                $arr[$key] = !empty($ssoUser[$key]) ? $ssoUser[$key] : null;
+                $ssoUserLocal[$key] = isset($ssoUser[$key]) ? $ssoUser[$key] : null;
             }
-            $this->sso_user = $arr;
+            $this->sso_user = $ssoUserLocal;
+            foreach ($this->syncColumnsLocal as $column) {
+                if (is_string($column)) {
+                    $this->$column = $ssoUserLocal[$column];
+                } else {
+                    $this->$column['local'] = $ssoUserLocal[$column['target']];
+                }
+            }
+        }
+        if (!$this->sso_id) {
+            $saving = true;
+            $this->sso_id = $ssoUser['id'];
+        }
+        if ($saving) {
+            $this->timestamps = false;
             $this->save();
         }
     }
 
     public function getAttribute($key)
     {
-        if (!in_array($key, $this->ssoHidden) && $this->isSsoAttribute($key)) {
+        if (!in_array($key, $this->ssoHidden) && !in_array($key, $this->ssoAttributesHidden) && $this->isSsoAttribute($key)) {
             $ssoData = $this->sso_user;
             return is_array($ssoData) && isset($ssoData[$key]) ? $ssoData[$key] : null;
         }
         return parent::getAttribute($key);
     }
 
-    public function getSsoIdAttribute()
+    public function getSsoIdAttribute($value)
     {
-        $ssoData = $this->sso_user;
-        return isset($ssoData['id']) ? $ssoData['id'] : null;
+        if ($value === null) {
+            $ssoData = $this->sso_user;
+            return isset($ssoData['id']) ? $ssoData['id'] : 0;
+        }
+        return $value;
     }
 
     protected function isSsoAttribute(string $key): bool
