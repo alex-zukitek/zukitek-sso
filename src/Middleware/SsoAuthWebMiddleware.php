@@ -7,8 +7,6 @@ use Illuminate\Support\Facades\Auth;
 
 class SsoAuthWebMiddleware
 {
-    protected $config;
-
     /**
      * Web will use cookie to check auth
      *
@@ -45,13 +43,8 @@ class SsoAuthWebMiddleware
                 $email = strtolower($email);
                 $user = $modelUser::where('email', $email)->first();
                 if ($user) {
-                    $user->syncDataLocal($ssoUser);
-                    if (!empty($sso['callbacks']['sync_user_local'])) {
-                        call_user_func(
-                            $sso['callbacks']['sync_user_local'],
-                            $user
-                        );
-                    }
+                    $callback = isset($sso['callbacks']['sync_user_local']) ? $sso['callbacks']['sync_user_local'] : [];
+                    $user->syncDataLocal($ssoUser, $callback);
                     Auth::guard('request')->setUser($user);
                     return $next($request);
                 } else {
@@ -61,10 +54,10 @@ class SsoAuthWebMiddleware
                         $httpError = 423;
                     } else {
                         if ($sso['sync_user_local']) {
-                            $newUser = call_user_func(
-                                $sso['callbacks']['create_user_client'],
-                                $ssoUser
-                            );
+                            $callback = $sso['callbacks']['create_user_client'];
+                            $callbackClass = $callback[0];
+                            $callbackMethod = $callback[1];
+                            $newUser = $callbackClass::$callbackMethod($ssoUser);
                             Auth::guard('request')->setUser($newUser);
                             return $next($request);
                         } else {
@@ -102,7 +95,7 @@ class SsoAuthWebMiddleware
         } else {
             if ($errorCode === 423) {
                 return redirect()->route('sso.errors', ['code' => 423]);
-            } else if ($errorCode === 403) {
+            } else if ($errorCode === 403 && $sso['url_to_register_account']) {
                 return redirect($sso['url_to_register_account']);
             } else if ($errorCode === 401) {
                 return redirect()->route('sso.login');
