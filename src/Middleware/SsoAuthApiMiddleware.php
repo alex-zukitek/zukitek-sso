@@ -53,7 +53,7 @@ class SsoAuthApiMiddleware
                     Auth::guard('request')->setUser($user);
                     return $next($request);
                 } else {
-                    if (empty($ssoUser->services[$sso['client_id']])) {
+                    if (empty($ssoUser['services'][$sso['client_id']])) {
                         $errorMessage = 'This service unavailable for your account';
                         $errorCode = 423;
                         $httpError = 423;
