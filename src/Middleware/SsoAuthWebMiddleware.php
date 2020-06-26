@@ -14,7 +14,7 @@ class SsoAuthWebMiddleware
      * @param Closure $next
      * @return \Illuminate\Http\RedirectResponse|\Laravel\Lumen\Http\Redirector|mixed
      */
-    public function handle($request, Closure $next)
+    public function handle($request, Closure $next, $applications = null)
     {
         $sso = config('sso');
 
@@ -30,28 +30,48 @@ class SsoAuthWebMiddleware
         $httpError = 401;
 
         if ($token) {
-            try {
-                // create user account
-                $modelUser = $sso['model']['user'];
-                $client = new \GuzzleHttp\Client();
-                $path = "{$sso['sso_api']['me']}?token={$token}";
-                $urlApi = sso_url($path);
-                $response = $client->request('GET', $urlApi);
-                $body = json_decode($response->getBody(), true);
-                $ssoUser = $body['data']['user'];
-                $email = $ssoUser['email'];
-                $email = strtolower($email);
-                $user = $modelUser::where('email', $email)->first();
-                if ($user) {
-                    $callback = isset($sso['callbacks']['sync_user_local']) ? $sso['callbacks']['sync_user_local'] : [];
-                    $user->syncDataLocal($ssoUser, $callback);
-                    Auth::guard('request')->setUser($user);
-                    return $next($request);
-                } else {
-                    if (empty($ssoUser['services'][$sso['client_id']])) {
-                        $errorMessage = 'This service unavailable for your account';
-                        $errorCode = 423;
-                        $httpError = 423;
+            $md5 = md5($token);
+            $ssoUser = \Illuminate\Support\Facades\Cache::remember("sso_{$md5}", 2 * 60, function () use ($sso, $token) {
+                try {
+                    $client = new \GuzzleHttp\Client();
+                    $path = "{$sso['sso_api']['me']}?token={$token}";
+                    $urlApi = sso_url($path);
+                    $response = $client->request('GET', $urlApi);
+                    $body = json_decode($response->getBody(), true);
+                    return $body['data']['user'];
+                } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+                    return null;
+                } catch (\Exception $e) {
+                    return null;
+                }
+            });
+            if (empty($ssoUser)) {
+                \Illuminate\Support\Facades\Cache::forget("sso_{$md5}");
+            } else {
+                try {
+                    // create user account
+                    $modelUser = $sso['model']['user'];
+                    $canAccess = false;
+                    if ($applications) {
+                        $arrApplications = explode('|', $applications);
+                        foreach ($ssoUser['applications'] as $application) {
+                            if (in_array($application['code'], $arrApplications)) {
+                                $canAccess = true;
+                                break;
+                            }
+                        }
+                        if (!$canAccess) {
+                            throw new \Exception('Limit permissions, please contact admin to continue.');
+                        }
+                    }
+                    $email = $ssoUser['email'];
+                    $email = strtolower($email);
+                    $user = $modelUser::where('email', $email)->first();
+                    if ($user) {
+                        $callback = isset($sso['callbacks']['sync_user_local']) ? $sso['callbacks']['sync_user_local'] : [];
+                        $user->syncDataLocal($ssoUser, $callback);
+                        Auth::guard('request')->setUser($user);
+                        return $next($request);
                     } else {
                         if ($sso['sync_user_local']) {
                             $callback = $sso['callbacks']['create_user_client'];
@@ -66,21 +86,11 @@ class SsoAuthWebMiddleware
                             $httpError = 403;
                         }
                     }
-                }
-            } catch (\GuzzleHttp\Exception\BadResponseException $e) {
-                $httpError = $e->getResponse()->getStatusCode();
-                if ($httpError === 401) {
-                    $response = json_decode($e->getResponse()->getBody()->getContents(), true);
-                    $errorMessage = $response['message'];
-                    $errorCode = $response['status_code'];
-                } else {
+                } catch (\Exception $e) {
                     $errorMessage = $e->getMessage();
-                    $errorCode = $httpError;
+                    $errorCode = 400;
+                    $httpError = 400;
                 }
-            } catch (\Exception $e) {
-                $errorMessage = $e->getMessage();
-                $errorCode = 400;
-                $httpError = 400;
             }
         }
 

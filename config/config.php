@@ -1,6 +1,8 @@
 <?php
 return [
-    'client_id' => env('SSO_CLIENT_ID', 'client id'), // ALICE, TELECONSULT, MYHOME, REWARDS, MARKETPLACE, MENTAL_WELLNESS, LIFESTYLE_CARE
+    'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB
+
+    'client_id' => env('SSO_CLIENT_ID', 'client id'), // ALICE, EUDA, MYHOME
 
     // Key and iv to encode data - base64 encode, use to call private API to hash data
     'client_key' => env('SSO_CLIENT_KEY', 'secret key'),

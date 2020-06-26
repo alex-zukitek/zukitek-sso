@@ -16,8 +16,9 @@ class ZukiSsoController extends Controller
 
     public function login()
     {
+        $app = isset($this->_sso['web_application_code']) ? $this->_sso['web_application_code'] : '';
         $this->removeToken();
-        $path = "{$this->_sso['sso_login_url']}?client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_login_success']);
+        $path = "{$this->_sso['sso_login_url']}?app={$app}&client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_login_success']);
         return redirect(sso_url($path));
     }
 
