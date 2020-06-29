@@ -30,8 +30,7 @@ class SsoAuthWebMiddleware
         $httpError = 401;
 
         if ($token) {
-            $md5 = md5($token);
-            $ssoUser = \Illuminate\Support\Facades\Cache::remember("sso_{$md5}", 2 * 60, function () use ($sso, $token) {
+            $fnGetSsoUser = function () use ($sso, $token, &$errorMessage, &$errorCode, &$httpError) {
                 try {
                     $client = new \GuzzleHttp\Client();
                     $path = "{$sso['sso_api']['me']}?token={$token}";
@@ -40,20 +39,39 @@ class SsoAuthWebMiddleware
                     $body = json_decode($response->getBody(), true);
                     return $body['data']['user'];
                 } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+                    $httpError = $e->getResponse()->getStatusCode();
+                    if ($httpError === 401) {
+                        $response = json_decode($e->getResponse()->getBody()->getContents(), true);
+                        $errorMessage = $response['message'];
+                        $errorCode = $response['status_code'];
+                    } else {
+                        $errorMessage = $e->getMessage();
+                        $errorCode = $httpError;
+                    }
                     return null;
                 } catch (\Exception $e) {
+                    $errorMessage = $e->getMessage();
+                    $errorCode = 400;
                     return null;
                 }
-            });
-            if (empty($ssoUser)) {
-                \Illuminate\Support\Facades\Cache::forget("sso_{$md5}");
+            };
+            if (!empty($sso['cache_time_life'])) {
+                $md5 = md5($token);
+                $keyCache = date('ymdh') . "sso_{$md5}";
+                $ssoUser = \Illuminate\Support\Facades\Cache::remember($keyCache, $sso['cache_time_life'], $fnGetSsoUser);
+                if (!$ssoUser) {
+                    \Illuminate\Support\Facades\Cache::forget($keyCache);
+                }
             } else {
+                $ssoUser = $fnGetSsoUser();
+            }
+            if ($ssoUser) {
                 try {
                     // create user account
                     $modelUser = $sso['model']['user'];
                     $canAccess = false;
                     if ($applications) {
-                        $arrApplications = explode('|', $applications);
+                        $arrApplications = explode('+', $applications);
                         foreach ($ssoUser['applications'] as $application) {
                             if (in_array($application['code'], $arrApplications)) {
                                 $canAccess = true;

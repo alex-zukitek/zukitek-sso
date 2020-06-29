@@ -1,7 +1,5 @@
 <?php
 return [
-    'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB
-
     'client_id' => env('SSO_CLIENT_ID', 'client id'), // ALICE, EUDA, MYHOME
 
     // Key and iv to encode data - base64 encode, use to call private API to hash data
@@ -17,6 +15,10 @@ return [
 
     // Client will redirect this url to logout
     'sso_logout_url' => '/auth/logout',
+
+    'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'WEB_APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB,
+
+    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 2 * 60),
 
     'sso_api' => [
         // URL api to get sso user info by token /api/me?token=asdasd...
