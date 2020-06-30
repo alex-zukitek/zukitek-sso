@@ -67,6 +67,10 @@ return [
     // Client will redirect this url to logout
     'sso_logout_url' => '/auth/logout',
 
+    'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'WEB_APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB,
+
+    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 2 * 60),
+
     'sso_api' => [
         // URL api to get sso user info by token /api/me?token=asdasd...
         'me' => '/api/auth/me',
@@ -78,22 +82,7 @@ return [
     ],
 
     'sso_secure_api' => [
-        'auth_register' => [
-            'method' => 'post',
-            'path' => '/api/secure/auth/register'
-        ],
-        'user_show' => [
-            'method' => 'get',
-            'path' => '/api/secure/user/:ssoId'
-        ],
-        'user_update' => [
-            'method' => 'put',
-            'path' => '/api/secure/user/:ssoId'
-        ],
-        'user_destroy' => [
-            'method' => 'delete',
-            'path' => '/api/secure/user/:ssoId'
-        ],
+        ...
     ],
 
     // After SSO auth, server SSO will redirect to this url
