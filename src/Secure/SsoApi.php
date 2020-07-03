@@ -93,31 +93,11 @@ class SsoApi
 
     public function _encrypt(array $data)
     {
-        // hash
-        $key = hash('sha256', $this->clientKey);
-        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
-        $ivlen = openssl_cipher_iv_length($this->encryptMethod);
-        $iv = substr($this->clientKey, 0, $ivlen);
-        $data['encrypted_at'] = time();
-        $data['_token'] = uniqid(microtime(true), true);
-        uksort($data, function () {
-            return rand(0, 1);
-        });
-        $string = json_encode($data);
-        $output = openssl_encrypt($string, $this->encryptMethod, $key, 0, $iv);
-        $output = base64_encode($output);
-        return $output;
+        return sso_encrypt($data, $this->clientKey, $this->encryptMethod);
     }
 
     public function _decrypt(string $data)
     {
-        // hash
-        $key = hash('sha256', $this->clientKey);
-        // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
-        $ivlen = openssl_cipher_iv_length($this->encryptMethod);
-        $iv = substr($this->clientKey, 0, $ivlen);
-        $output = openssl_decrypt(base64_decode($data), $this->encryptMethod, $key, 0, $iv);
-        $output = json_decode($output);
-        return $output;
+        return sso_decrypt($data, $this->clientKey, $this->encryptMethod);
     }
 }

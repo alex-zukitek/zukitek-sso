@@ -15,7 +15,7 @@ class AddSsoIdToUsersTable extends Migration
     {
         if (!Schema::hasColumn('users', 'sso_id')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->unsignedBigInteger('sso_id')->nullable()->after('id');
+                $table->unsignedBigInteger('sso_id')->index()->nullable()->after('id');
             });
         }
     }

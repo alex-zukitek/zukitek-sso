@@ -24,7 +24,7 @@ return [
         // URL api to get sso user info by token /api/me?token=asdasd...
         'me' => '/api/auth/me',
         // Make payment
-        'make_payment'  => [
+        'make_payment' => [
             'method' => 'post',
             'path' => '/api/payment'
         ],
@@ -109,6 +109,15 @@ return [
             'name' => 'sso.token.remove',
             'namespace' => '\Zukitek\Sso\Controllers',
             'action' => 'ZukiSsoController@removeToken'
+        ],
+
+        // SSO server will call back to sync User
+        'sso/secure/sync-user' => [
+            'method' => 'get',
+            'middleware' => [],
+            'name' => 'sso.secure.sync',
+            'namespace' => '\Zukitek\Sso\Controllers\Secure',
+            'action' => 'ZukiController@syncUser'
         ],
     ],
 

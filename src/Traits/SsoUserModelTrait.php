@@ -69,6 +69,11 @@ trait SsoUserModelTrait
             empty($this->sso_user) ||
             (!empty($this->sso_user) && is_array($this->sso_user) && $this->sso_user['updated_at'] !== $ssoUser['updated_at'])
         ) {
+            if (isset($this->sso_user['updated_at']) && isset($ssoUser['updated_at'])) {
+                if (strtotime($this->sso_user['updated_at']) >= strtotime($ssoUser['updated_at'])) {
+                    return false;
+                }
+            }
             $syncColumnsLocal = isset($this->syncColumnsLocal) ? $this->syncColumnsLocal : [];
             $saving = true;
             $ssoUserLocal = [];
