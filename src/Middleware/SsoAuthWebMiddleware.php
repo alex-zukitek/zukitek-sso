@@ -55,7 +55,7 @@ class SsoAuthWebMiddleware
                     return null;
                 }
             };
-            if (!empty($sso['cache_time_life'])) {
+            if (isset($sso['cache_time_life'])) {
                 $md5 = md5($token);
                 $keyCache = date('ymdh') . "sso_{$md5}";
                 $ssoUser = \Illuminate\Support\Facades\Cache::remember($keyCache, $sso['cache_time_life'], $fnGetSsoUser);
