@@ -2,6 +2,7 @@
 namespace Zukitek\Sso\Providers;
 
 use Illuminate\Support\Facades\Auth;
+use Zukitek\Sso\SsoData;
 
 class LumenServiceProvider extends ServiceProvider
 {
@@ -13,7 +14,8 @@ class LumenServiceProvider extends ServiceProvider
     public function register()
     {
         Auth::viaRequest('request', function ($request) {
-            return null;
+            $localUser = SsoData::localUser();
+            return $localUser;
         });
 
         $this->app->configure('sso');

@@ -3,13 +3,15 @@
 namespace Zukitek\Sso\Providers;
 
 use Illuminate\Support\Facades\Auth;
+use Zukitek\Sso\SsoData;
 
 class LaravelServiceProvider extends ServiceProvider
 {
     public function boot()
     {
         Auth::viaRequest('request', function ($request) {
-            return null;
+            $localUser = SsoData::localUser();
+            return $localUser;
         });
 
         $path = realpath(__DIR__ . '/../../config/config.php');
