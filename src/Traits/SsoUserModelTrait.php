@@ -26,8 +26,23 @@ trait SsoUserModelTrait
         }
     }
 
+    /**
+     * Disable to not sync to SSO
+     */
+    protected function _beforeSyncSsoData()
+    {
+        if (isset($this->hasSyncedData)) {
+            $this->hasSyncedData = true;
+        }
+    }
+
     public function syncDataLocal(array $ssoUser, array $callback = [])
     {
+        if (method_exists(self::class, 'beforeSyncSsoData')) {
+            $this->beforeSyncSsoData();
+        } else {
+            $this->_beforeSyncSsoData();
+        }
         $saving = false;
         if (!isset($this->attributes['sso_id'])) {
             $saving = true;
@@ -68,6 +83,10 @@ trait SsoUserModelTrait
             $this->sso_user = $ssoUser;
         }
         if ($saving) {
+            // remove key cache for SSO data
+            $keyCache = "{$ssoUser['email']}.{$ssoUser['id']}";
+            \Illuminate\Support\Facades\Cache::forget($keyCache);
+
             $this->timestamps = false;
             $this->save();
             if (!empty($callback) && is_array($callback)) {

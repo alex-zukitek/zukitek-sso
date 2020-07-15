@@ -96,7 +96,7 @@ class SsoData
                 $email = strtolower($email);
                 $cacheTimeLife = config('sso.cache_time_life');
                 if (isset($cacheTimeLife)) {
-                    $keyCache = "{$email}.{$ssoUser['id']}.{$ssoUser['updated_at']}";
+                    $keyCache = "{$email}.{$ssoUser['id']}";
                     $user = \Illuminate\Support\Facades\Cache::remember($keyCache, $cacheTimeLife, function () use ($modelUser, $email) {
                         return $modelUser::where('email', $email)->first();
                     });

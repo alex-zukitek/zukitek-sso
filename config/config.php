@@ -18,7 +18,7 @@ return [
 
     'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'WEB_APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB,
 
-    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 2 * 60),
+    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 5 * 60), // From laravel v >= 5.8 , it is seconds, before it is minutes
 
     'sso_api' => [
         // URL api to get sso user info by token /api/me?token=asdasd...
