@@ -102,6 +102,14 @@ return [
             'action' => 'ZukiSsoController@saveToken'
         ],
 
+        'auth/cookie-checking' => [
+            'method' => 'get',
+            'middleware' => ['cross.domain'],
+            'name' => 'sso.cookie.checking',
+            'namespace' => '\Zukitek\Sso\Controllers',
+            'action' => 'ZukiSsoController@isCookieSaved'
+        ],
+
         // SSO server will call back and remove token from iframe
         'auth/remove-access-frame' => [
             'method' => 'get',

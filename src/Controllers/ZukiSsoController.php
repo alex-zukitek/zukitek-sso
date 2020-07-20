@@ -25,25 +25,55 @@ class ZukiSsoController extends Controller
     public function logout()
     {
         $this->removeToken();
-        $path = "{$this->_sso['sso_logout_url']}?client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_logout_success']);
+        $app = isset($this->_sso['web_application_code']) ? $this->_sso['web_application_code'] : '';
+        $path = "{$this->_sso['sso_logout_url']}?app={$app}&client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_logout_success']);
         return redirect(sso_url($path));
     }
 
     public function saveToken(Request $request)
     {
         $input = $request->only(['t', 'e']);
-        if (!empty($input['t']) && !empty($input['e'])) {
-            $token = base64_decode($input['t']);
-            $expires = (int)base64_decode($input['e']);
+        if (isset($input['t']) && isset($input['e'])) {
+            $token = $input['t'];
+            $expires = $input['e'];
             $cookieInfo = $this->_sso['cookie_info'];
-            foreach ($this->_sso['auth_keys'] as $key => $name) {
+            foreach ($this->_sso['auth_keys'] as $key => $value) {
                 if ($key === 'access_token') {
-                    setcookie($name, $token, time() + $expires, $cookieInfo['path'], $cookieInfo['domain'], $cookieInfo['secure'], $cookieInfo['http_only']);
-                } else {
-                    setcookie($key, $name, time() + $expires, $cookieInfo['path'], $cookieInfo['domain'], false, false);
+                    $key = $value;
+                    $value = $token;
                 }
+                setcookie(
+                    $key,
+                    $value,
+                    [
+                        'expires' => $expires,
+                        'path' => $cookieInfo['path'],
+                        'domain' => $cookieInfo['domain'],
+                        'secure' => $cookieInfo['secure'],
+                        'httponly' => $cookieInfo['http_only'],
+                        'samesite' => 'None',
+                    ]
+                );
             }
+            if ($request->has('continue')) {
+                return redirect(urldecode($request->get('continue')));
+            }
+            return response()->json(['status' => true], 200);
         }
+        abort(404);
+    }
+
+    public function isCookieSaved(Request $request)
+    {
+        $time = $request->get('time');
+        if (!$time || (int)$time < (time() - 120)) {
+            abort(404);
+        }
+        $check = get_cookie($this->_sso['auth_keys']['access_token']);
+        if (!$check) {
+            return response()->json(['status' => false], 400);
+        }
+        return response()->json(['status' => true], 200);
     }
 
     public function removeToken()

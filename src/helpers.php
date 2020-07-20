@@ -17,14 +17,14 @@ if (!function_exists('get_cookie')) {
 if (!function_exists('rm_web_token')) {
     function rm_web_token()
     {
+        $past = time() - 3600;
         $cookieInfo = config('sso.cookie_info');
         $authKeys = config('sso.auth_keys');
         foreach ($authKeys as $key => $name) {
             if ($key === 'access_token') {
-                setcookie($name, '', 0, $cookieInfo['path'], $cookieInfo['domain'], $cookieInfo['secure'], $cookieInfo['http_only']);
-            } else {
-                setcookie($key, '', 0, $cookieInfo['path'], $cookieInfo['domain'], false, false);
+                $key = $name;
             }
+            setcookie($key, '', $past, $cookieInfo['path'], $cookieInfo['domain'], $cookieInfo['secure'], $cookieInfo['http_only']);
         }
     }
 }
