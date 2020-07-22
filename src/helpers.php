@@ -17,14 +17,25 @@ if (!function_exists('get_cookie')) {
 if (!function_exists('rm_web_token')) {
     function rm_web_token()
     {
-        $past = time() - 3600;
+        $expires = time() - 3600;
         $cookieInfo = config('sso.cookie_info');
         $authKeys = config('sso.auth_keys');
         foreach ($authKeys as $key => $name) {
             if ($key === 'access_token') {
                 $key = $name;
             }
-            setcookie($key, '', $past, $cookieInfo['path'], $cookieInfo['domain'], $cookieInfo['secure'], $cookieInfo['http_only']);
+            setcookie(
+                $key,
+                '',
+                [
+                    'expires' => $expires,
+                    'path' => $cookieInfo['path'],
+                    'domain' => $cookieInfo['domain'],
+                    'secure' => $cookieInfo['secure'],
+                    'httponly' => $cookieInfo['http_only'],
+                    'samesite' => 'None',
+                ]
+            );
         }
     }
 }
@@ -47,7 +58,7 @@ if (!function_exists('sso_encrypt')) {
         // iv - encrypt method AES-256-CBC expects 16 bytes - else you will get a warning
         $ivlen = openssl_cipher_iv_length($encryptMethod);
         $iv = substr($secretKey, 0, $ivlen);
-        $data['encrypted_at'] = time();
+        $data['_encrypted_at'] = time();
         $data['_token'] = uniqid(microtime(true), true);
         uksort($data, function () {
             return rand(0, 1);

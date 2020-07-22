@@ -14,17 +14,17 @@ class ZukiSsoController extends Controller
         $this->_sso = config('sso');
     }
 
-    public function login()
+    public function login(Request $request)
     {
         $app = isset($this->_sso['web_application_code']) ? $this->_sso['web_application_code'] : '';
-        $this->removeToken();
+        $this->removeToken($request);
         $path = "{$this->_sso['sso_login_url']}?app={$app}&client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_login_success']);
         return redirect(sso_url($path));
     }
 
-    public function logout()
+    public function logout(Request $request)
     {
-        $this->removeToken();
+        $this->removeToken($request);
         $app = isset($this->_sso['web_application_code']) ? $this->_sso['web_application_code'] : '';
         $path = "{$this->_sso['sso_logout_url']}?app={$app}&client={$this->_sso['client_id']}&continue=" . urldecode($this->_sso['redirect_logout_success']);
         return redirect(sso_url($path));
@@ -76,8 +76,19 @@ class ZukiSsoController extends Controller
         return response()->json(['status' => true], 200);
     }
 
-    public function removeToken()
+    public function removeToken(Request $request)
     {
-        rm_web_token();
+        try {
+            $token = $request->get('t');
+            if ($token && isset($this->_sso['cache_time_life'])) {
+                $md5 = md5($token);
+                $keyCache = date('ymd') . "sso_{$md5}";
+                \Illuminate\Support\Facades\Cache::forget($keyCache);
+            }
+            rm_web_token();
+            return response()->json(['status' => true], 200);
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }

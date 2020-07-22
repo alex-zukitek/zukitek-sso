@@ -24,18 +24,17 @@ class ZukiController extends Controller
             $ssoData = sso_decrypt($data, $this->_sso['client_key']);
             $localUser = $this->_sso['model']['user']::where('email', $ssoData['email'])->first();
             if ($localUser) {
-                if (isset($ssoData['_token'])) {
-                    unset($ssoData['_token']);
-                }
-                if (isset($ssoData['encrypted_at'])) {
-                    unset($ssoData['encrypted_at']);
+                foreach (['encrypted_at', '_token', '_encrypted_at'] as $key) {
+                    if (isset($ssoData[$key])) {
+                        unset($ssoData[$key]);
+                    }
                 }
                 $callback = isset($this->_sso['callbacks']['sync_user_local']) ? $this->_sso['callbacks']['sync_user_local'] : [];
                 $localUser->syncDataLocal($ssoData, $callback);
                 \Log::debug("{$localUser->email} Sync success");
             }
         } catch (\Exception $e) {
-            \Log::debug("{$localUser->email} Sync error {$e->getMessage()}: ".$data);
+            \Log::debug("{$localUser->email} Sync error {$e->getMessage()}: " . $data);
         }
     }
 }
