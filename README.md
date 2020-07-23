@@ -51,7 +51,7 @@ $app->register(\Zukitek\Sso\Providers\LumenServiceProvider::class);
 ```php
 <?php
 return [
-    'client_id' => env('SSO_CLIENT_ID', 'client id'), // ALICE, TELECONSULT, MYHOME, REWARDS, MARKETPLACE, MENTAL_WELLNESS, LIFESTYLE_CARE
+    'client_id' => env('SSO_CLIENT_ID', 'client id'), // ALICE, EUDA, MYHOME
 
     // Key and iv to encode data - base64 encode, use to call private API to hash data
     'client_key' => env('SSO_CLIENT_KEY', 'secret key'),
@@ -69,20 +69,39 @@ return [
 
     'web_application_code' => env('SSO_WEB_APPLICATION_CODE', 'WEB_APPLICATION_CODE'), // EUDA_ADMIN_WEB, MYHOME_ADMIN_WEB,
 
-    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 2 * 60),
+    'cache_time_life' => env('SSO_CACHE_TIME_LIFE', 5 * 60), // From laravel v >= 5.8 , it is seconds, before it is minutes
 
     'sso_api' => [
         // URL api to get sso user info by token /api/me?token=asdasd...
         'me' => '/api/auth/me',
-        // make payment
-        'make_payment'  => [
+        // Make payment
+        'make_payment' => [
             'method' => 'post',
             'path' => '/api/payment'
         ],
     ],
 
     'sso_secure_api' => [
-        ...
+        'auth_register' => [
+            'method' => 'post',
+            'path' => '/api/secure/auth/register'
+        ],
+        'user_show' => [
+            'method' => 'get',
+            'path' => '/api/secure/user/:ssoId'
+        ],
+        'user_update' => [
+            'method' => 'put',
+            'path' => '/api/secure/user/:ssoId'
+        ],
+        'user_destroy' => [
+            'method' => 'delete',
+            'path' => '/api/secure/user/:ssoId'
+        ],
+        'push_notifications' => [
+            'method' => 'post',
+            'path' => '/api/secure/notifications'
+        ],
     ],
 
     // After SSO auth, server SSO will redirect to this url
@@ -99,9 +118,10 @@ return [
 
     'cookie_info' => [
         'path' => env('SSO_COOKIE_PATH', '/'),
-        'domain' => env('SSO_COOKIE_DOMAIN', null),
+        'domain' => env('SSO_COOKIE_DOMAIN'),
         'secure' => env('SSO_COOKIE_SECURE', false),
         'http_only' => env('SSO_COOKIE_HTTP_ONLY', false),
+        'same_site' => env('SSO_COOKIE_SAME_SITE', 'Lax'), // None, Lax, Strict
     ],
 
     'routes' => [
@@ -134,6 +154,14 @@ return [
             'action' => 'ZukiSsoController@saveToken'
         ],
 
+        'auth/cookie-checking' => [
+            'method' => 'get',
+            'middleware' => ['cross.domain'],
+            'name' => 'sso.cookie.checking',
+            'namespace' => '\Zukitek\Sso\Controllers',
+            'action' => 'ZukiSsoController@isCookieSaved'
+        ],
+
         // SSO server will call back and remove token from iframe
         'auth/remove-access-frame' => [
             'method' => 'get',
@@ -141,6 +169,15 @@ return [
             'name' => 'sso.token.remove',
             'namespace' => '\Zukitek\Sso\Controllers',
             'action' => 'ZukiSsoController@removeToken'
+        ],
+
+        // SSO server will call back to sync User
+        'sso/secure/sync-user' => [
+            'method' => 'get',
+            'middleware' => [],
+            'name' => 'sso.secure.sync',
+            'namespace' => '\Zukitek\Sso\Controllers\Secure',
+            'action' => 'ZukiController@syncUser'
         ],
     ],
 

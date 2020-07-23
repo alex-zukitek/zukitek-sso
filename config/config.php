@@ -67,9 +67,10 @@ return [
 
     'cookie_info' => [
         'path' => env('SSO_COOKIE_PATH', '/'),
-        'domain' => env('SSO_COOKIE_DOMAIN', null),
+        'domain' => env('SSO_COOKIE_DOMAIN'),
         'secure' => env('SSO_COOKIE_SECURE', false),
         'http_only' => env('SSO_COOKIE_HTTP_ONLY', false),
+        'same_site' => env('SSO_COOKIE_SAME_SITE', 'Lax'), // None, Lax, Strict
     ],
 
     'routes' => [

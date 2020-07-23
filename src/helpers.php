@@ -33,7 +33,7 @@ if (!function_exists('rm_web_token')) {
                     'domain' => $cookieInfo['domain'],
                     'secure' => $cookieInfo['secure'],
                     'httponly' => $cookieInfo['http_only'],
-                    'samesite' => 'None',
+                    'samesite' => $cookieInfo['same_site'],
                 ]
             );
         }
