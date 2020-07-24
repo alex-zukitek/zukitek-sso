@@ -17,6 +17,7 @@ class SsoData
             $sso = config('sso');
             $request = app('Illuminate\Http\Request');
             $platform = $request->header('X-Platform-Request');
+            $device = $request->header('X-Device-Request');
 
             // Get token from request or cookie
             $token = $request->input('_sso_token', $request->header('Authorization'));
@@ -47,7 +48,7 @@ class SsoData
                 };
                 if (isset($sso['cache_time_life'])) {
                     $md5 = md5($token);
-                    $keyCache = date('ymd') . "sso_{$md5}";
+                    $keyCache = "{$platform}_{$device}_{$md5}";
                     $ssoUser = \Illuminate\Support\Facades\Cache::remember($keyCache, $sso['cache_time_life'], $fnGetSsoUser);
                     if (!$ssoUser) {
                         \Illuminate\Support\Facades\Cache::forget($keyCache);
