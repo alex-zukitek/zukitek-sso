@@ -8,6 +8,10 @@ class SsoData
 {
     private static $_data = false;
 
+    private static $_cacheKey;
+
+    private static $_cacheKeyLocal;
+
     private static $_localUser = false;
 
     private static function _getUser()
@@ -47,8 +51,7 @@ class SsoData
                     }
                 };
                 if (isset($sso['cache_time_life'])) {
-                    $md5 = md5($token);
-                    $keyCache = "{$platform}_{$device}_{$md5}";
+                    $keyCache = self::getCacheKey($token, $device);
                     $ssoUser = \Illuminate\Support\Facades\Cache::remember($keyCache, $sso['cache_time_life'], $fnGetSsoUser);
                     if (!$ssoUser) {
                         \Illuminate\Support\Facades\Cache::forget($keyCache);
@@ -97,12 +100,12 @@ class SsoData
                 $email = strtolower($email);
                 $cacheTimeLife = config('sso.cache_time_life');
                 if (isset($cacheTimeLife)) {
-                    $keyCache = "{$email}.{$ssoUser['id']}";
-                    $user = \Illuminate\Support\Facades\Cache::remember($keyCache, $cacheTimeLife, function () use ($modelUser, $email) {
+                    $cacheLocal = self::getCacheKeyLocal($ssoUser);
+                    $user = \Illuminate\Support\Facades\Cache::remember($cacheLocal, $cacheTimeLife, function () use ($modelUser, $email) {
                         return $modelUser::where('email', $email)->first();
                     });
                     if (!$user) {
-                        \Illuminate\Support\Facades\Cache::forget($keyCache);
+                        \Illuminate\Support\Facades\Cache::forget($cacheLocal);
                     }
                 } else {
                     $user = $modelUser::where('email', $email)->first();
@@ -124,5 +127,23 @@ class SsoData
     {
         self::$_data = null;
         self::$_localUser = null;
+    }
+
+    public static function getCacheKey($token, $deviceID = null)
+    {
+        if (!self::$_cacheKey) {
+            $md5 = md5($token);
+            $deviceID = $deviceID ? substr($deviceID, 0, 20) : '';
+            self::$_cacheKey = "{$deviceID}_{$md5}";
+        }
+        return self::$_cacheKey;
+    }
+
+    public static function getCacheKeyLocal(array $ssoUser)
+    {
+        if (!self::$_cacheKeyLocal) {
+            self::$_cacheKeyLocal = "{$ssoUser['email']}.{$ssoUser['id']}";
+        }
+        return self::$_cacheKeyLocal;
     }
 }

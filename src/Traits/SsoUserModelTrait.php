@@ -2,6 +2,8 @@
 
 namespace Zukitek\Sso\Traits;
 
+use Zukitek\Sso\SsoData;
+
 trait SsoUserModelTrait
 {
     /**
@@ -84,8 +86,8 @@ trait SsoUserModelTrait
         }
         if ($saving) {
             // remove key cache for SSO data
-            $keyCache = "{$ssoUser['email']}.{$ssoUser['id']}";
-            \Illuminate\Support\Facades\Cache::forget($keyCache);
+            $cacheLocal = SsoData::getCacheKeyLocal($ssoUser);
+            \Illuminate\Support\Facades\Cache::forget($cacheLocal);
 
             $this->timestamps = false;
             $this->save();

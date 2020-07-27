@@ -4,6 +4,7 @@ namespace Zukitek\Sso\Controllers;
 
 use  App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Zukitek\Sso\SsoData;
 
 class ZukiSsoController extends Controller
 {
@@ -81,8 +82,7 @@ class ZukiSsoController extends Controller
         try {
             $token = $request->get('t');
             if ($token && isset($this->_sso['cache_time_life'])) {
-                $md5 = md5($token);
-                $keyCache = date('ymd') . "sso_{$md5}";
+                $keyCache = SsoData::getCacheKey($token);
                 \Illuminate\Support\Facades\Cache::forget($keyCache);
             }
             rm_web_token();
