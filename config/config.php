@@ -60,16 +60,16 @@ return [
     'redirect_logout_success' => env('SSO_LOGOUT_REDIRECT_BACK', 'http://account.zukitek.test'),
 
     'auth_keys' => [
-        'access_token' => env('SSO_ACCESS_NAME', 'access_token'), // cookie token will save by name and secure
+        'access_token' => env('SSO_ACCESS_NAME', 'LOGIN_INFO'), // cookie token will save by name and secure, httponly
         // You can set more cookie name and value
-        'logged_in' => 'true',  // cookie token will save by loggedIn and and value true and not secure
+        'LOGGED_IN' => time(),  // cookie token will save by loggedIn and and value true and not secure
     ],
 
     'cookie_info' => [
         'path' => env('SSO_COOKIE_PATH', '/'),
         'domain' => env('SSO_COOKIE_DOMAIN'),
         'secure' => env('SSO_COOKIE_SECURE', false),
-        'http_only' => env('SSO_COOKIE_HTTP_ONLY', false),
+        'http_only' => env('SSO_COOKIE_HTTP_ONLY', true),
         'same_site' => env('SSO_COOKIE_SAME_SITE', 'Lax'), // None, Lax, Strict
     ],
 
@@ -89,6 +89,14 @@ return [
             'name' => 'sso.logout',
             'namespace' => '\Zukitek\Sso\Controllers',
             'action' => 'ZukiSsoController@logout'
+        ],
+
+        'sso/token' => [
+            'method' => 'post',
+            'middleware' => [],
+            'name' => 'sso.token',
+            'namespace' => '\Zukitek\Sso\Controllers',
+            'action' => 'ZukiSsoController@token'
         ],
 
         /**

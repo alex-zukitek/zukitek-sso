@@ -22,7 +22,7 @@ class SsoAuthApiMiddleware
         $errorCode = 401;
         $httpError = 401;
         try {
-            $ssoUser = SsoData::user();
+            $ssoUser = SsoData::user('api');
             if ($ssoUser) {
                 $sso = config('sso');
                 if (SsoData::localUser()) {

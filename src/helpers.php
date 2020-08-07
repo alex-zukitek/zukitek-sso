@@ -15,12 +15,15 @@ if (!function_exists('get_cookie')) {
 }
 
 if (!function_exists('rm_web_token')) {
-    function rm_web_token()
+    function rm_web_token($except = [])
     {
         $expires = time() - 3600;
         $cookieInfo = config('sso.cookie_info');
         $authKeys = config('sso.auth_keys');
         foreach ($authKeys as $key => $name) {
+            if (in_array($key, $except)) {
+                continue;
+            }
             if ($key === 'access_token') {
                 $key = $name;
             }

@@ -14,7 +14,7 @@ class SsoData
 
     private static $_localUser = false;
 
-    private static function _getUser()
+    private static function _getUser($callFrom = null)
     {
         $ssoUser = null;
         try {
@@ -23,15 +23,22 @@ class SsoData
             $platform = $request->header('X-Platform-Request');
             $device = $request->header('X-Device-Request');
 
-            // Get token from request or cookie
-            $token = $request->input('_sso_token', $request->header('Authorization'));
-            if (!$token && $platform !== 'app') {
-                $token = get_cookie($sso['auth_keys']['access_token']);
+            if ($callFrom === 'web') {
+                $token = $request->input('_sso_token', get_cookie($sso['auth_keys']['access_token']));
+            } elseif ($callFrom === 'api') {
+                // Get token from request or cookie
+                $token = $request->input('_sso_token', $request->header('Authorization'));
+                if ($token) {
+                    $token = str_replace('Bearer ', '', $token);
+                }
             } else {
-                $token = str_replace('Bearer ', '', $token);
-            }
-            if ($token && in_array($token, ['deleted'])) {
-                $token = null;
+                // Get token from request or cookie
+                $token = $request->input('_sso_token', $request->header('Authorization'));
+                if ($token) {
+                    $token = str_replace('Bearer ', '', $token);
+                } else {
+                    $token = get_cookie($sso['auth_keys']['access_token']);
+                }
             }
             if ($token) {
                 $fnGetSsoUser = function () use ($sso, $token) {
@@ -72,10 +79,10 @@ class SsoData
         self::$_data = $data;
     }
 
-    public static function user()
+    public static function user($callFrom = null)
     {
         if (self::$_data === false) {
-            self::$_data = self::_getUser();
+            self::$_data = self::_getUser($callFrom);
         }
         return self::$_data;
     }

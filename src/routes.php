@@ -6,7 +6,7 @@ foreach ($routes as $path => $value) {
         'namespace' => $value['namespace'],
         'middleware' => $value['middleware'],
     ], function ($router) use ($path, $value) {
-        $router->get($path, [
+        $router->{$value['method']}($path, [
             'as' => $value['name'], 'uses' => $value['action']
         ]);
     });

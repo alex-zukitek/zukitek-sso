@@ -22,7 +22,7 @@ class SsoAuthWebMiddleware
         $errorCode = 401;
         $httpError = 401;
         try {
-            $ssoUser = SsoData::user();
+            $ssoUser = SsoData::user('web');
             if ($ssoUser) {
                 if (SsoData::localUser()) {
                     $canAccess = false;
