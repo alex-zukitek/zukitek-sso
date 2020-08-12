@@ -18,25 +18,22 @@ if (!function_exists('rm_web_token')) {
     function rm_web_token($except = [])
     {
         $expires = time() - 3600;
-        $cookieInfo = config('sso.cookie_info');
+        $settingCookie = config('sso.cookie_info');
         $authKeys = config('sso.auth_keys');
-        foreach ($authKeys as $key => $name) {
+        foreach ($authKeys as $key => $cookieName) {
             if (in_array($key, $except)) {
                 continue;
             }
-            if ($key === 'access_token') {
-                $key = $name;
-            }
             setcookie(
-                $key,
+                $cookieName,
                 '',
                 [
                     'expires' => $expires,
-                    'path' => $cookieInfo['path'],
-                    'domain' => $cookieInfo['domain'],
-                    'secure' => $cookieInfo['secure'],
-                    'httponly' => $cookieInfo['http_only'],
-                    'samesite' => $cookieInfo['same_site'],
+                    'path' => $settingCookie['path'],
+                    'domain' => $settingCookie['domain'],
+                    'secure' => $settingCookie['secure'],
+                    'httponly' => $settingCookie['http_only'],
+                    'samesite' => $settingCookie['same_site'],
                 ]
             );
         }
@@ -86,4 +83,3 @@ if (!function_exists('sso_decrypt')) {
         return $output;
     }
 }
-

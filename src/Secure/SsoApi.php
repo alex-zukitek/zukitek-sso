@@ -56,10 +56,10 @@ class SsoApi
         $method = strtoupper($method);
         $params['author'] = $this->author;
         $data = $this->_encrypt($params);
-        $body = $this->body;
+        $requestBody = $this->body;
         switch ($method) {
             case 'GET':
-                $body['query'] = [
+                $requestBody['query'] = [
                     'data' => $data, // request data
                 ];
                 break;
@@ -67,7 +67,7 @@ class SsoApi
             case 'PUT':
             case 'PATCH':
             case 'DELETE':
-                $body['json'] = [
+            $requestBody['json'] = [
                     'data' => $data, // request data
                 ];
                 break;
@@ -76,7 +76,7 @@ class SsoApi
         }
         $client = new \GuzzleHttp\Client();
         try {
-            $response = $client->request($method, "{$this->ssoApiUrl}/{$path}", $body);
+            $response = $client->request($method, "{$this->ssoApiUrl}/{$path}", $requestBody);
             $body = json_decode($response->getBody(), true);
             return $body;
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {

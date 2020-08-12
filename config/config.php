@@ -23,11 +23,6 @@ return [
     'sso_api' => [
         // URL api to get sso user info by token /api/me?token=asdasd...
         'me' => '/api/auth/me',
-        // Make payment
-        'make_payment' => [
-            'method' => 'post',
-            'path' => '/api/payment'
-        ],
     ],
 
     'sso_secure_api' => [
@@ -62,7 +57,7 @@ return [
     'auth_keys' => [
         'access_token' => env('SSO_ACCESS_NAME', 'LOGIN_INFO'), // cookie token will save by name and secure, httponly
         // You can set more cookie name and value
-        'LOGGED_IN' => time(),  // cookie token will save by loggedIn and and value true and not secure
+        'logged_in' => 'LOGGED_IN',
     ],
 
     'cookie_info' => [
@@ -70,7 +65,7 @@ return [
         'domain' => env('SSO_COOKIE_DOMAIN'),
         'secure' => env('SSO_COOKIE_SECURE', false),
         'http_only' => env('SSO_COOKIE_HTTP_ONLY', true),
-        'same_site' => env('SSO_COOKIE_SAME_SITE', 'Lax'), // None, Lax, Strict
+        'same_site' => env('SSO_COOKIE_SAME_SITE', 'None'), // None, Lax, Strict
     ],
 
     'routes' => [
@@ -109,14 +104,6 @@ return [
             'name' => 'sso.token.save',
             'namespace' => '\Zukitek\Sso\Controllers',
             'action' => 'ZukiSsoController@saveToken'
-        ],
-
-        'auth/cookie-checking' => [
-            'method' => 'get',
-            'middleware' => ['cross.domain'],
-            'name' => 'sso.cookie.checking',
-            'namespace' => '\Zukitek\Sso\Controllers',
-            'action' => 'ZukiSsoController@isCookieSaved'
         ],
 
         // SSO server will call back and remove token from iframe

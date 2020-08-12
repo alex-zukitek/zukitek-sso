@@ -44,61 +44,40 @@ class ZukiSsoController extends Controller
             $token = $input['t'];
             $expires = $input['e'];
             $cookieInfo = $this->_sso['cookie_info'];
-            foreach ($this->_sso['auth_keys'] as $key => $value) {
-                $httpOnly = $cookieInfo['http_only'];
+            foreach ($this->_sso['auth_keys'] as $key => $cookieName) {
+                $httponly = $cookieInfo['http_only'];
                 if ($key === 'access_token') {
-                    $key = $value;
-                    $value = $token;
+                    $cookieValue = $token;
                 } else {
-                    $httpOnly = false;
+                    $cookieValue = time();
+                    $httponly = false;
                 }
-                setcookie(
-                    $key,
-                    $value,
-                    [
+                setcookie($cookieName, $cookieValue, [
                         'expires' => $expires,
                         'path' => $cookieInfo['path'],
                         'domain' => $cookieInfo['domain'],
                         'secure' => $cookieInfo['secure'],
-                        'httponly' => $httpOnly,
+                        'httponly' => $httponly,
                         'samesite' => $cookieInfo['same_site'],
                     ]
                 );
             }
-            if ($request->has('continue')) {
-                return redirect(urldecode($request->get('continue')));
-            }
-            return response()->json(['status' => true], 200);
         }
-        abort(404);
-    }
-
-    public function isCookieSaved(Request $request)
-    {
-        $time = $request->get('time');
-        if (!$time || (int)$time < (time() - 120)) {
-            abort(404);
+        if ($request->has('continue')) {
+            return redirect(urldecode($request->get('continue')));
         }
-        $check = get_cookie($this->_sso['auth_keys']['access_token']);
-        if (!$check) {
-            return response()->json(['status' => false], 400);
-        }
-        return response()->json(['status' => true], 200);
+        return response()->json();
     }
 
     public function removeToken(Request $request)
     {
-        try {
-            $token = $request->get('t');
-            if ($token && isset($this->_sso['cache_time_life'])) {
-                $keyCache = SsoData::getCacheKey($token);
-                \Illuminate\Support\Facades\Cache::forget($keyCache);
-                rm_web_token();
-            }
-            return response()->json(['status' => true], 200);
-        } catch (\Exception $e) {
-            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        $token = $request->get('t');
+        if ($token && isset($this->_sso['cache_time_life'])) {
+            $keyCache = SsoData::getCacheKey($token);
+            \Illuminate\Support\Facades\Cache::forget($keyCache);
+            rm_web_token();
         }
+        return response()->json();
     }
 
     public function token(Request $request)
