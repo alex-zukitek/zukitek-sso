@@ -2,8 +2,8 @@
     "name": "zukitek/sso",
     "description": "Zukitek SSO",
     "require": {
-        "php": ">=7.1",
-        "guzzlehttp/guzzle": "6.*"
+        "php": ">=7.3",
+        "guzzlehttp/guzzle": "^7.0"
     },
     "authors": [
         {
@@ -16,7 +16,7 @@
             "Zukitek\\Sso\\": "src/"
         },
         "files": [
-            "src/helpers.php"
+            "src/functions.php"
         ]
     },
     "extra": {

@@ -3,6 +3,8 @@
 namespace Zukitek\Sso\Secure;
 
 use Illuminate\Support\Facades\Auth;
+use GuzzleHttp\Client;
+use Exception;
 
 class SsoApi
 {
@@ -35,7 +37,7 @@ class SsoApi
         if (method_exists($this, $name)) {
             return $this->$name(...$arguments);
         }
-        throw new \Exception('Method not found');
+        throw new Exception('Method not found');
     }
 
     public static function __callStatic($name, $arguments)
@@ -47,7 +49,7 @@ class SsoApi
         if (method_exists(self::$instance, $name)) {
             return self::$instance->$name(...$arguments);
         }
-        throw new \Exception('Method not found');
+        throw new Exception('Method not found');
     }
 
     public function _request($apiPath, $method = 'GET', array $params = [])
@@ -72,16 +74,16 @@ class SsoApi
                 ];
                 break;
             default:
-                throw new \Exception('HTTP method invalid');
+                throw new Exception('HTTP method invalid');
         }
-        $client = new \GuzzleHttp\Client();
+        $client = new Client();
         try {
             $response = $client->request($method, "{$this->ssoApiUrl}/{$path}", $requestBody);
             $body = json_decode($response->getBody(), true);
             return $body;
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+        } catch (\GuzzleHttpException\BadResponseException $e) {
             return json_decode($e->getResponse()->getBody()->getContents(), true);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return [
                 'success' => false,
                 'message' => $e->getMessage(),

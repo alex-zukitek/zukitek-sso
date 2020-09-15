@@ -42,6 +42,23 @@ return [
             'method' => 'delete',
             'path' => '/api/secure/user/:ssoId'
         ],
+        'user_change_password' => [
+            'method' => 'put',
+            'path' => '/api/secure/user/:ssoId/change-password'
+        ],
+        'user_open_service' => [
+            'method' => 'put',
+            'path' => '/api/secure/user/:ssoId/services'
+        ],
+        // make payment
+        'payments_create' => [
+            'method' => 'post',
+            'path' => '/api/secure/payments'
+        ],
+        'payments_refund' => [
+            'method' => 'post',
+            'path' => '/api/secure/payments/refund'
+        ],
         'push_notifications' => [
             'method' => 'post',
             'path' => '/api/secure/notifications'
@@ -65,7 +82,7 @@ return [
         'domain' => env('SSO_COOKIE_DOMAIN'),
         'secure' => env('SSO_COOKIE_SECURE', false),
         'http_only' => env('SSO_COOKIE_HTTP_ONLY', true),
-        'same_site' => env('SSO_COOKIE_SAME_SITE', 'None'), // None, Lax, Strict
+        'same_site' => env('SSO_COOKIE_SAME_SITE', 'Lax'), // None, Lax, Strict
     ],
 
     'routes' => [
